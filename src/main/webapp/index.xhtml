@@ -1,0 +1,179 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <h:head>
+        <title>Feeds</title>
+    </h:head>
+    <h:body style="font-size: 10px">
+        <h:form id="form">
+            <p:messages closable="true"/>
+            <p:focus context="@form"/>
+
+            <p:commandButton value="Inserir"
+                             icon="ui-icon-plus"
+                             immediate="true"
+                             update="@form"
+                             rendered="#{feedBean.edicao eq false}"
+                             actionListener="#{feedBean.editar()}"/>
+
+
+            <p:panelGrid columns="2"
+                         rendered="#{feedBean.edicao}">
+
+                <p:outputLabel value="Codigo"
+                               rendered="#{feedBean.feed.id ne null}" />
+                <p:inputText value="#{feedBean.feed.id}"
+                             rendered="#{feedBean.feed.id ne null}"
+                             disabled="true"/>
+
+                <p:outputLabel value="Descrição" for="desc"/>
+                <p:inputText value="#{feedBean.feed.descricao}"
+                             maxlength="100"
+                             id="desc"
+                             size="50"
+                             requiredMessage="digite a descricao"
+                             required="true"/>
+
+                <p:outputLabel value="Descrição" for="url"/>
+                <p:inputText value="#{feedBean.feed.url}"
+                             maxlength="200"
+                             id="url"
+                             size="70"
+                             requiredMessage="digite a url"
+                             required="true"/>
+
+                <p:commandButton value="Salvar"
+                                 icon="ui-icon-check"
+                                 update="@form"
+                                 actionListener="#{feedBean.salvar()}">
+                    <p:confirm header="Confirmação" 
+                               message="Tem certeza?"
+                               icon="ui-icon-alert" />
+                </p:commandButton>
+
+                <p:commandButton value="Cancelar"
+                                 icon="ui-icon-cancel"
+                                 immediate="true"
+                                 update="@form"
+                                 rendered="#{feedBean.edicao}"
+                                 actionListener="#{feedBean.cancelar()}">
+                    <p:confirm header="Confirmação"
+                               message="Tem certeza que quer cancelar?" 
+                               icon="ui-icon-alert" />
+                </p:commandButton>
+
+            </p:panelGrid>
+
+            <p:dataTable value="#{feedBean.feeds}"
+                         var="p"
+                         rendered="#{feedBean.edicao eq false and feedBean.verfeed eq false}"
+                         emptyMessage="nenhum feed cadastrado"
+                         scrollable="true"
+                         scrollHeight="400"
+                         >
+
+                <f:facet name="header">Feeds Cadastrados</f:facet>
+
+                <p:column  headerText="Codigo" 
+                           sortBy="#{p.id}"
+                           width="100"
+                           filterBy="#{p.id}" 
+                           filterMatchMode="contains">
+                    <h:outputText value="#{p.id}"/>
+                </p:column>
+
+                <p:column headerText="Descrição"
+                          sortBy="#{p.descricao}"
+                          filterBy="#{p.descricao}"
+                          filterMatchMode="contains">
+                    <h:outputText value="#{p.descricao}"/>
+                </p:column>
+
+                <p:column headerText="Url"
+                          sortBy="#{p.url}"
+                          filterBy="#{p.url}"
+                          filterMatchMode="contains">
+                    <h:outputText value="#{p.url}"/>
+                </p:column>
+
+                <p:column  headerText="Data/Hora"
+                           sortBy="#{p.datahora}"
+                           width="150"
+                           filterBy="#{p.datahora}" 
+                           filterMatchMode="contains">
+                    <h:outputText value="#{p.datahora}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Ações"
+                          width="200">
+
+                    <p:commandButton value="Ver"
+                                     icon="ui-icon-search"
+                                     immediate="true"
+                                     actionListener="#{feedBean.ver(p)}"
+                                     update="@form"/>
+
+                    <p:commandButton value="Editar"
+                                     icon="ui-icon-pencil"
+                                     immediate="true"
+                                     actionListener="#{feedBean.editar(p)}"
+                                     update="@form"/>
+
+                    <p:commandButton value="Excluir"
+                                     icon="ui-icon-trash"
+                                     immediate="true"
+                                     update="@form"
+                                     actionListener="#{feedBean.excluir(p)}">
+                        <p:confirm header="Confirmação"
+                                   message="Tem certeza que quer excluir?" 
+                                   icon="ui-icon-alert" />               
+                    </p:commandButton>
+                </p:column>
+
+            </p:dataTable>
+
+            <p:commandButton value="Voltar"
+                             icon="ui-icon-cancel"
+                             immediate="true"
+                             update="@form"
+                             rendered="#{feedBean.verfeed}"
+                             actionListener="#{feedBean.cancelar()}"/>
+
+
+            <p:panel header="#{feedBean.feed.descricao}"
+                     rendered="#{feedBean.verfeed}">
+                <p:feedReader
+                    value="#{feedBean.feed.url}" var="feed" >            
+                    <h:outputText value="#{feed.title}" 
+                                  style="font-weight: bold;display:block"/><br/>
+                    <h:outputText value="#{feed.description.value}"
+                                  escape="false"/><br/>
+                    <h:outputText value="#{feed.publishedDate}" >
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm:ss"/>
+                    </h:outputText><br/>
+                    <h:outputLink value="#{feed.link}" 
+                                  style="color: blue"
+                                  target="_blank" >acessar</h:outputLink>
+                    <p:separator />
+                </p:feedReader>
+            </p:panel>
+
+            <p:confirmDialog global="true" appendTo="@(body)">
+                <p:commandButton value="Sim" type="button" 
+                                 styleClass="ui-confirmdialog-yes"
+                                 icon="ui-icon-check" />
+                <p:commandButton value="Nao" type="button" 
+                                 styleClass="ui-confirmdialog-no" 
+                                 icon="ui-icon-close" />
+            </p:confirmDialog>
+
+        </h:form>        
+    </h:body>
+</html>
+
